@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>AI Customer Support</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    Oxygen, Ubuntu, Cantarell, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+
+            .chat-container {
+                width: 100%;
+                max-width: 800px;
+                height: 90vh;
+                background: white;
+                border-radius: 20px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+
+            .chat-header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 20px;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .bot-avatar {
+                width: 50px;
+                height: 50px;
+                background: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+            }
+
+            .header-info h2 {
+                font-size: 20px;
+                margin-bottom: 5px;
+            }
+
+            .status {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                font-size: 14px;
+                opacity: 0.9;
+            }
+
+            .status-dot {
+                width: 8px;
+                height: 8px;
+                background: #4ade80;
+                border-radius: 50%;
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.5;
+                }
+            }
+
+            .chat-messages {
+                flex: 1;
+                overflow-y: auto;
+                padding: 20px;
+                background: #f8fafc;
+            }
+
+            .message {
+                margin-bottom: 20px;
+                display: flex;
+                gap: 10px;
+                animation: slideIn 0.3s ease;
+            }
+
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .message.user {
+                flex-direction: row-reverse;
+            }
+
+            .message-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                flex-shrink: 0;
+            }
+
+            .message.bot .message-avatar {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+
+            .message.user .message-avatar {
+                background: #e2e8f0;
+            }
+
+            .message-content {
+                max-width: 70%;
+                padding: 12px 16px;
+                border-radius: 18px;
+                line-height: 1.5;
+            }
+
+            .message.bot .message-content {
+                background: white;
+                border: 1px solid #e2e8f0;
+            }
+
+            .message.user .message-content {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }
+
+            .sentiment-badge {
+                display: inline-block;
+                padding: 4px 10px;
+                border-radius: 12px;
+                font-size: 11px;
+                margin-top: 8px;
+                font-weight: 600;
+            }
+
+            .sentiment-low {
+                background: #dcfce7;
+                color: #166534;
+            }
+            .sentiment-medium {
+                background: #fef3c7;
+                color: #92400e;
+            }
+            .sentiment-high {
+                background: #fee2e2;
+                color: #991b1b;
+            }
+
+            .suggested-actions {
+                margin-top: 12px;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .action-btn {
+                padding: 6px 12px;
+                background: #f1f5f9;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                font-size: 12px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .action-btn:hover {
+                background: #667eea;
+                color: white;
+                border-color: #667eea;
+            }
+
+            .chat-input-container {
+                padding: 20px;
+                background: white;
+                border-top: 1px solid #e2e8f0;
+            }
+
+            .chat-input-wrapper {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+            }
+
+            .chat-input {
+                flex: 1;
+                padding: 12px 16px;
+                border: 2px solid #e2e8f0;
+                border-radius: 25px;
+                font-size: 14px;
+                outline: none;
+                transition: border-color 0.2s;
+            }
+
+            .chat-input:focus {
+                border-color: #667eea;
+            }
+
+            .send-btn {
+                width: 50px;
+                height: 50px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border: none;
+                border-radius: 50%;
+                color: white;
+                font-size: 20px;
+                cursor: pointer;
+                transition: transform 0.2s;
+            }
+
+            .send-btn:hover {
+                transform: scale(1.1);
+            }
+
+            .send-btn:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            .typing-indicator {
+                display: flex;
+                gap: 4px;
+                padding: 12px 16px;
+            }
+
+            .typing-dot {
+                width: 8px;
+                height: 8px;
+                background: #94a3b8;
+                border-radius: 50%;
+                animation: typing 1.4s infinite;
+            }
+
+            .typing-dot:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+            .typing-dot:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+
+            @keyframes typing {
+                0%,
+                60%,
+                100% {
+                    transform: translateY(0);
+                }
+                30% {
+                    transform: translateY(-10px);
+                }
+            }
+
+            .quick-actions {
+                display: flex;
+                gap: 8px;
+                padding: 10px 20px;
+                overflow-x: auto;
+                background: white;
+            }
+
+            .quick-action {
+                padding: 8px 16px;
+                background: #f1f5f9;
+                border: 1px solid #e2e8f0;
+                border-radius: 20px;
+                white-space: nowrap;
+                font-size: 13px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .quick-action:hover {
+                background: #667eea;
+                color: white;
+                border-color: #667eea;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="chat-container">
+            <div class="chat-header">
+                <div class="bot-avatar">🤖</div>
+                <div class="header-info">
+                    <h2>AI Support Assistant</h2>
+                    <div class="status">
+                        <div class="status-dot"></div>
+                        <span>Online - Powered by Sentiment AI</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <div
+                    class="quick-action"
+                    onclick="sendQuickMessage('How do I reset my password?')"
+                >
+                    Reset Password
+                </div>
+                <div
+                    class="quick-action"
+                    onclick="sendQuickMessage('I need help with billing')"
+                >
+                    Billing Help
+                </div>
+                <div
+                    class="quick-action"
+                    onclick="sendQuickMessage('App is not working')"
+                >
+                    Technical Issue
+                </div>
+                <div
+                    class="quick-action"
+                    onclick="sendQuickMessage('How do I export my data?')"
+                >
+                    Export Data
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chatMessages"></div>
+
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <input
+                        type="text"
+                        class="chat-input"
+                        id="messageInput"
+                        placeholder="Type your message..."
+                        onkeypress="handleKeyPress(event)"
+                    />
+                    <button
+                        class="send-btn"
+                        id="sendBtn"
+                        onclick="sendMessage()"
+                    >
+                        ➤
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Auto-detect environment
+            const API_BASE = `${window.location.origin}/api`;
+
+            let sessionId = null;
+
+            console.log("🔗 Connecting to API:", API_BASE);
+
+            // Initialize session on load
+            async function initSession() {
+                try {
+                    console.log(
+                        "🔄 Attempting to connect to:",
+                        `${API_BASE}/session/init`,
+                    );
+
+                    const response = await fetch(`${API_BASE}/session/init`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                    });
+
+                    console.log("📡 Response status:", response.status);
+
+                    if (!response.ok) {
+                        throw new Error(
+                            `HTTP ${response.status}: ${response.statusText}`,
+                        );
+                    }
+
+                    const data = await response.json();
+                    console.log("✅ Session initialized:", data.sessionId);
+
+                    sessionId = data.sessionId;
+                    addBotMessage(data.message);
+                } catch (error) {
+                    console.error("❌ Error initializing session:", error);
+                    console.error("Full error details:", {
+                        message: error.message,
+                        type: error.name,
+                        stack: error.stack,
+                    });
+
+                    let errorMessage = "⚠️ Unable to connect to server.\n\n";
+
+                    if (error.message.includes("Failed to fetch")) {
+                        errorMessage += "🔴 Connection Error:\n";
+                        errorMessage +=
+                            "• Backend might not be running on port 5000\n";
+                        errorMessage += "• Check if you started: npm run dev\n";
+                        errorMessage += `• Testing URL: ${API_BASE}\n\n`;
+                        errorMessage += "💡 Try running in terminal:\n";
+                        errorMessage += "curl http://localhost:5000/api/health";
+                    } else if (error.message.includes("CORS")) {
+                        errorMessage += "🔴 CORS Error:\n";
+                        errorMessage += "• CORS policy blocking the request\n";
+                        errorMessage +=
+                            "• Make sure backend has: app.use(cors())";
+                    } else {
+                        errorMessage += `🔴 Error: ${error.message}\n`;
+                        errorMessage += `• Check browser console (F12) for details`;
+                    }
+
+                    addBotMessage(errorMessage);
+                }
+            }
+
+            function addMessage(content, isBot = false, metadata = null) {
+                const messagesDiv = document.getElementById("chatMessages");
+                const messageDiv = document.createElement("div");
+                messageDiv.className = `message ${isBot ? "bot" : "user"}`;
+
+                const avatar = document.createElement("div");
+                avatar.className = "message-avatar";
+                avatar.textContent = isBot ? "🤖" : "👤";
+
+                const contentDiv = document.createElement("div");
+                contentDiv.className = "message-content";
+                contentDiv.innerHTML = content.replace(/\n/g, "<br>");
+
+                // Add sentiment badge for user messages
+                if (!isBot && metadata && metadata.sentiment) {
+                    const badge = document.createElement("div");
+                    badge.className = `sentiment-badge sentiment-${metadata.escalationRisk}`;
+                    badge.textContent = `Risk: ${metadata.escalationRisk.toUpperCase()}`;
+                    contentDiv.appendChild(badge);
+                }
+
+                // Add suggested actions
+                if (
+                    isBot &&
+                    metadata &&
+                    metadata.suggestedActions &&
+                    metadata.suggestedActions.length > 0
+                ) {
+                    const actionsDiv = document.createElement("div");
+                    actionsDiv.className = "suggested-actions";
+
+                    metadata.suggestedActions.forEach((action) => {
+                        const btn = document.createElement("button");
+                        btn.className = "action-btn";
+                        btn.textContent = action
+                            .replace(/_/g, " ")
+                            .replace(/\b\w/g, (l) => l.toUpperCase());
+                        btn.onclick = () => handleAction(action);
+                        actionsDiv.appendChild(btn);
+                    });
+
+                    contentDiv.appendChild(actionsDiv);
+                }
+
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(contentDiv);
+                messagesDiv.appendChild(messageDiv);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+
+            function addBotMessage(content, metadata = null) {
+                addMessage(content, true, metadata);
+            }
+
+            function addUserMessage(content, metadata = null) {
+                addMessage(content, false, metadata);
+            }
+
+            function showTypingIndicator() {
+                const messagesDiv = document.getElementById("chatMessages");
+                const typingDiv = document.createElement("div");
+                typingDiv.className = "message bot";
+                typingDiv.id = "typingIndicator";
+
+                const avatar = document.createElement("div");
+                avatar.className = "message-avatar";
+                avatar.textContent = "🤖";
+
+                const contentDiv = document.createElement("div");
+                contentDiv.className = "message-content typing-indicator";
+                contentDiv.innerHTML =
+                    '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+
+                typingDiv.appendChild(avatar);
+                typingDiv.appendChild(contentDiv);
+                messagesDiv.appendChild(typingDiv);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+
+            function hideTypingIndicator() {
+                const typingIndicator =
+                    document.getElementById("typingIndicator");
+                if (typingIndicator) typingIndicator.remove();
+            }
+
+            async function sendMessage() {
+                const input = document.getElementById("messageInput");
+                const message = input.value.trim();
+
+                if (!message || !sessionId) return;
+
+                // Add user message
+                addUserMessage(message);
+                input.value = "";
+
+                // Disable input
+                const sendBtn = document.getElementById("sendBtn");
+                sendBtn.disabled = true;
+                input.disabled = true;
+
+                // Show typing indicator
+                showTypingIndicator();
+
+                try {
+                    const response = await fetch(`${API_BASE}/chat/message`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ sessionId, message }),
+                    });
+
+                    const data = await response.json();
+
+                    // Hide typing indicator
+                    hideTypingIndicator();
+
+                    // Add bot response
+                    addBotMessage(data.response, data.metadata);
+
+                    // Update user message with metadata
+                    const messages = document.querySelectorAll(".message.user");
+                    const lastUserMessage = messages[messages.length - 1];
+                    if (lastUserMessage && data.metadata.sentiment) {
+                        const badge = document.createElement("div");
+                        badge.className = `sentiment-badge sentiment-${data.metadata.escalationRisk}`;
+                        badge.textContent = `Risk: ${data.metadata.escalationRisk.toUpperCase()}`;
+                        lastUserMessage
+                            .querySelector(".message-content")
+                            .appendChild(badge);
+                    }
+                } catch (error) {
+                    hideTypingIndicator();
+                    addBotMessage(
+                        "⚠️ Sorry, I encountered an error. Please try again.",
+                    );
+                } finally {
+                    sendBtn.disabled = false;
+                    input.disabled = false;
+                    input.focus();
+                }
+            }
+
+            function sendQuickMessage(message) {
+                const input = document.getElementById("messageInput");
+                input.value = message;
+                sendMessage();
+            }
+
+            async function handleAction(action) {
+                if (
+                    action === "escalate_to_human" ||
+                    action === "priority_escalation"
+                ) {
+                    showTypingIndicator();
+
+                    try {
+                        const response = await fetch(`${API_BASE}/escalate`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ sessionId, reason: action }),
+                        });
+
+                        const data = await response.json();
+                        hideTypingIndicator();
+                        addBotMessage(data.message);
+                    } catch (error) {
+                        hideTypingIndicator();
+                        addBotMessage(
+                            "⚠️ Unable to escalate. Please try again.",
+                        );
+                    }
+                } else if (action === "browse_faqs") {
+                    window.open(`${API_BASE}/faqs`, "_blank");
+                } else if (action === "detailed_guide") {
+                    addUserMessage("Can you explain that in more detail?");
+                    sendMessage();
+                }
+            }
+
+            function handleKeyPress(event) {
+                if (event.key === "Enter") {
+                    sendMessage();
+                }
+            }
+
+            // Initialize on page load
+            initSession();
+        </script>
+    </body>
+</html>
