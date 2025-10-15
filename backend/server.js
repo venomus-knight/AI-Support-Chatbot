@@ -297,8 +297,10 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 AI Customer Support Bot running on http://0.0.0.0:${PORT}`);
-  console.log(`📊 Features: Sentiment Analysis, Contextual Memory, Smart Escalation`);
-});
+// const PORT = process.env.PORT || 3000;
+// app.listen(PORT, () => {
+//   console.log(`🚀 AI Customer Support Bot running on port ${PORT}`);
+//   console.log(`📊 Features: Sentiment Analysis, Contextual Memory, Smart Escalation`);
+// });
+
+module.exports = app; // Add this line for Vercel
